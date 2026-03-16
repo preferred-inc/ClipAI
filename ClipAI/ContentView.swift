@@ -5,9 +5,15 @@ struct ContentView: View {
     let onClose: () -> Void
 
     @StateObject private var claude = ClaudeService()
-    @State private var prompt: String = ""
+    @State private var prompt: String
     @State private var appeared = false
     @FocusState private var isFocused: Bool
+
+    init(clipboardText: String, onClose: @escaping () -> Void) {
+        self.clipboardText = clipboardText
+        self.onClose = onClose
+        self._prompt = State(initialValue: clipboardText)
+    }
 
     private var hasResponse: Bool {
         !claude.response.isEmpty || claude.errorMessage != nil
@@ -40,9 +46,6 @@ struct ContentView: View {
                 appeared = true
             }
             isFocused = true
-            if !clipboardText.isEmpty {
-                send()
-            }
         }
     }
 
@@ -67,13 +70,6 @@ struct ContentView: View {
                     .focused($isFocused)
                     .onSubmit { send() }
 
-                if !clipboardText.isEmpty && !hasResponse {
-                    Text(clipboardText.prefix(100).replacingOccurrences(of: "\n", with: " "))
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
             }
 
             Spacer(minLength: 0)
@@ -157,16 +153,8 @@ struct ContentView: View {
             return
         }
 
-        let input: String
-        if prompt.isEmpty {
-            guard !clipboardText.isEmpty else { return }
-            input = "以下の内容について、簡潔に説明・要約してください:\n\n\(clipboardText)"
-        } else {
-            let context = clipboardText.isEmpty ? "" : "\n\n---\n\n\(clipboardText)"
-            input = prompt + context
-        }
-
-        claude.send(prompt: input, apiKey: apiKey)
+        guard !prompt.isEmpty else { return }
+        claude.send(prompt: prompt, apiKey: apiKey)
     }
 
     private func copyResponse() {
