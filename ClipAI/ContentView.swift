@@ -179,24 +179,22 @@ struct ContentView: View {
 
 struct SparkleIcon: View {
     let isAnimating: Bool
-    @State private var rotation: Double = 0
+    @State private var pulse = false
 
     var body: some View {
         Image(systemName: "sparkles")
             .font(.system(size: 18, weight: .medium))
-            .foregroundStyle(isAnimating ? Theme.gradient : LinearGradient(colors: [Theme.accentDim], startPoint: .top, endPoint: .bottom))
-            .rotationEffect(.degrees(rotation))
-            .scaleEffect(isAnimating ? 1.1 : 1.0)
-            .onChange(of: isAnimating) { animating in
-                if animating {
-                    withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                        rotation = 360
-                    }
-                } else {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        rotation = 0
-                    }
-                }
+            .foregroundStyle(isAnimating ? Theme.accent : Theme.accentDim)
+            .scaleEffect(pulse ? 1.15 : 1.0)
+            .opacity(pulse ? 1.0 : 0.7)
+            .animation(
+                isAnimating
+                    ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true)
+                    : .easeOut(duration: 0.2),
+                value: pulse
+            )
+            .onChange(of: isAnimating) { val in
+                pulse = val
             }
     }
 }
@@ -205,19 +203,25 @@ struct SparkleIcon: View {
 
 struct TypingDots: View {
     @State private var phase = 0
+    @State private var timer: Timer?
 
     var body: some View {
         HStack(spacing: 3) {
-            ForEach(0..<3) { i in
+            ForEach(0..<3, id: \.self) { i in
                 Circle()
                     .fill(Theme.accent.opacity(phase == i ? 0.8 : 0.25))
                     .frame(width: 4, height: 4)
+                    .animation(.easeInOut(duration: 0.2), value: phase)
             }
         }
         .onAppear {
-            Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
+            timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
                 phase = (phase + 1) % 3
             }
+        }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
         }
     }
 }
