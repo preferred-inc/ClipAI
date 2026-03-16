@@ -1,11 +1,8 @@
 import Cocoa
 import SwiftUI
-import Carbon.HIToolbox
-
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: FloatingPanel?
-    private var hotKeyRef: EventHotKeyRef?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -22,7 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
-        menu.addItem(withTitle: "Show  ⌘⇧.", action: #selector(togglePanel), keyEquivalent: "")
+        menu.addItem(withTitle: "Show  ⌘⌥.", action: #selector(togglePanel), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         menu.addItem(.separator())
@@ -33,29 +30,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Global HotKey
 
     private func registerGlobalHotKey() {
-        let hotKeyID = EventHotKeyID(signature: OSType(0x434C4950), id: 1)
-        let modifiers: UInt32 = UInt32(cmdKey | shiftKey)
-        let keyCode: UInt32 = 47 // '.'
-
-        var ref: EventHotKeyRef?
-        let status = RegisterEventHotKey(keyCode, modifiers, hotKeyID,
-                                         GetApplicationEventTarget(), 0, &ref)
-        if status == noErr { hotKeyRef = ref }
-
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
-                                      eventKind: UInt32(kEventHotKeyPressed))
-        InstallEventHandler(GetApplicationEventTarget(), { _, event, _ -> OSStatus in
-            var hkID = EventHotKeyID()
-            GetEventParameter(event, EventParamName(kEventParamDirectObject),
-                              EventParamType(typeEventHotKeyID), nil,
-                              MemoryLayout<EventHotKeyID>.size, nil, &hkID)
-            if hkID.id == 1 {
+        // Use NSEvent global monitor — works without Accessibility if app is signed
+        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            // ⌘⇧. (Cmd+Shift+Period)
+            if event.modifierFlags.contains([.command, .option]) && event.keyCode == 47 {
                 DispatchQueue.main.async {
-                    (NSApp.delegate as? AppDelegate)?.togglePanel()
+                    self?.togglePanel()
                 }
             }
-            return noErr
-        }, 1, &eventType, nil, nil)
+        }
+
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.modifierFlags.contains([.command, .option]) && event.keyCode == 47 {
+                DispatchQueue.main.async {
+                    self?.togglePanel()
+                }
+                return nil
+            }
+            return event
+        }
     }
 
     // MARK: - Panel
@@ -101,6 +94,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        if let ref = hotKeyRef { UnregisterEventHotKey(ref) }
     }
 }

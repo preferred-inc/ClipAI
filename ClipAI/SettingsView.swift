@@ -54,7 +54,7 @@ struct SettingsView: View {
                     Spacer()
                     HStack(spacing: 4) {
                         KeyCap("⌘")
-                        KeyCap("⇧")
+                        KeyCap("⌥")
                         KeyCap(".")
                     }
                 }
