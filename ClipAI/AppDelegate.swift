@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
-        menu.addItem(withTitle: "Show  ⌘⌥I", action: #selector(togglePanel), keyEquivalent: "")
+        menu.addItem(withTitle: "Show  ⌘⇧.", action: #selector(togglePanel), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         menu.addItem(.separator())
@@ -34,8 +34,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func registerGlobalHotKey() {
         let hotKeyID = EventHotKeyID(signature: OSType(0x434C4950), id: 1)
-        let modifiers: UInt32 = UInt32(cmdKey | optionKey)
-        let keyCode: UInt32 = 34
+        let modifiers: UInt32 = UInt32(cmdKey | shiftKey)
+        let keyCode: UInt32 = 47 // '.'
 
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(keyCode, modifiers, hotKeyID,
