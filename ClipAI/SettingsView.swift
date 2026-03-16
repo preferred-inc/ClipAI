@@ -15,20 +15,11 @@ struct SettingsView: View {
         Form {
             Section {
                 HStack {
-                    Group {
-                        if showKey {
-                            TextField("sk-ant-...", text: $apiKey)
-                        } else {
-                            SecureField("sk-ant-...", text: $apiKey)
-                        }
-                    }
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
-
-                    Button(action: { showKey.toggle() }) {
-                        Image(systemName: showKey ? "eye.slash" : "eye")
-                    }
-                    .buttonStyle(.borderless)
+                    TextField("sk-ant-...", text: $apiKey)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                        .disableAutocorrection(true)
+                        .textContentType(.none)
                 }
             } header: {
                 Text("Anthropic API Key")
