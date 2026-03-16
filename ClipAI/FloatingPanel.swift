@@ -6,7 +6,7 @@ final class FloatingPanel: NSPanel {
 
     init(contentView: NSView) {
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 52),
+            contentRect: NSRect(x: 0, y: 0, width: 540, height: 52),
             styleMask: [.nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -19,18 +19,39 @@ final class FloatingPanel: NSPanel {
         self.level = .floating
         self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         self.isReleasedWhenClosed = false
-        self.animationBehavior = .utilityWindow
+        self.animationBehavior = .none
         self.isOpaque = false
         self.backgroundColor = .clear
-        self.hasShadow = false // Shadow is handled by SwiftUI
+        self.hasShadow = false
 
-        // Spotlight-like: upper-center of screen
+        // Upper-center of screen
         if let screen = NSScreen.main {
             let sf = screen.visibleFrame
             let x = sf.midX - frame.width / 2
             let y = sf.midY + sf.height * 0.15
             setFrameOrigin(NSPoint(x: x, y: y))
         }
+    }
+
+    func showWithAnimation() {
+        alphaValue = 0
+        makeKeyAndOrderFront(nil)
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.15
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            animator().alphaValue = 1
+        }
+    }
+
+    func dismissWithAnimation(completion: (() -> Void)? = nil) {
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.12
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            animator().alphaValue = 0
+        }, completionHandler: { [weak self] in
+            self?.close()
+            completion?()
+        })
     }
 
     override func keyDown(with event: NSEvent) {
@@ -47,8 +68,9 @@ final class FloatingPanel: NSPanel {
     }
 
     private func dismiss() {
-        close()
-        onClose?()
+        dismissWithAnimation { [weak self] in
+            self?.onClose?()
+        }
     }
 
     override var canBecomeKey: Bool { true }
