@@ -2,10 +2,12 @@ import Cocoa
 
 final class FloatingPanel: NSPanel {
 
+    var onClose: (() -> Void)?
+
     init(contentView: NSView) {
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 48),
-            styleMask: [.nonactivatingPanel, .fullSizeContentView, .resizable],
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 52),
+            styleMask: [.nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -18,10 +20,11 @@ final class FloatingPanel: NSPanel {
         self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         self.isReleasedWhenClosed = false
         self.animationBehavior = .utilityWindow
+        self.isOpaque = false
         self.backgroundColor = .clear
-        self.hasShadow = true
+        self.hasShadow = false // Shadow is handled by SwiftUI
 
-        // Spotlight-like position: upper-center
+        // Spotlight-like: upper-center of screen
         if let screen = NSScreen.main {
             let sf = screen.visibleFrame
             let x = sf.midX - frame.width / 2
@@ -31,8 +34,21 @@ final class FloatingPanel: NSPanel {
     }
 
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { close() }
-        else { super.keyDown(with: event) }
+        if event.keyCode == 53 {
+            dismiss()
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        dismiss()
+    }
+
+    private func dismiss() {
+        close()
+        onClose?()
     }
 
     override var canBecomeKey: Bool { true }

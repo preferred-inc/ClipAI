@@ -10,11 +10,22 @@ targets:
     type: application
     platform: macOS
     sources:
-      - ClipAI
+      - path: ClipAI
+        excludes:
+          - Info.plist
+          - ClipAI.entitlements
     info:
       path: ClipAI/Info.plist
+      properties:
+        CFBundleName: ClipAI
+        CFBundleDisplayName: ClipAI
+        LSUIElement: true
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
     entitlements:
       path: ClipAI/ClipAI.entitlements
+      properties:
+        com.apple.security.network.client: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.clipai.app
@@ -22,7 +33,4 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.9"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
-        INFOPLIST_FILE: ClipAI/Info.plist
-        CODE_SIGN_ENTITLEMENTS: ClipAI/ClipAI.entitlements
-        GENERATE_INFOPLIST_FILE: false
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

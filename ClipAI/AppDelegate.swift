@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
-        menu.addItem(withTitle: "Show  ⌘⌥I", action: #selector(showPanel), keyEquivalent: "")
+        menu.addItem(withTitle: "Show  ⌘⌥I", action: #selector(togglePanel), keyEquivalent: "")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         menu.addItem(.separator())
@@ -33,7 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Global HotKey (Carbon)
 
     private func registerGlobalHotKey() {
-        let hotKeyID = EventHotKeyID(signature: OSType(0x434C4950), id: 1) // "CLIP"
+        let hotKeyID = EventHotKeyID(signature: OSType(0x434C4950), id: 1)
         let modifiers: UInt32 = UInt32(cmdKey | optionKey)
         let keyCode: UInt32 = 34 // 'i'
 
@@ -44,7 +44,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             hotKeyRef = ref
         }
 
-        // Install Carbon event handler
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
                                       eventKind: UInt32(kEventHotKeyPressed))
         InstallEventHandler(GetApplicationEventTarget(), { _, event, _ -> OSStatus in
@@ -54,9 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                               MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
             if hotKeyID.id == 1 {
                 DispatchQueue.main.async {
-                    if let delegate = NSApp.delegate as? AppDelegate {
-                        delegate.showPanel()
-                    }
+                    (NSApp.delegate as? AppDelegate)?.togglePanel()
                 }
             }
             return noErr
@@ -65,25 +62,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Panel
 
-    @objc func showPanel() {
+    @objc private func togglePanel() {
         if let existing = panel, existing.isVisible {
-            existing.close()
-            panel = nil
+            dismissPanel()
             return
         }
 
         let clipboardText = NSPasteboard.general.string(forType: .string) ?? ""
 
         let contentView = ContentView(clipboardText: clipboardText, onClose: { [weak self] in
-            self?.panel?.close()
-            self?.panel = nil
+            self?.dismissPanel()
         })
 
-        let panel = FloatingPanel(contentView: NSHostingView(rootView: contentView))
-        panel.center()
-        panel.makeKeyAndOrderFront(nil)
+        let hostingView = NSHostingView(rootView: contentView)
+        hostingView.layer?.cornerRadius = 12
+
+        let newPanel = FloatingPanel(contentView: hostingView)
+        newPanel.onClose = { [weak self] in
+            self?.panel = nil
+        }
+        newPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
-        self.panel = panel
+        self.panel = newPanel
+    }
+
+    private func dismissPanel() {
+        panel?.close()
+        panel = nil
     }
 
     @objc private func openSettings() {

@@ -19,10 +19,8 @@
 /* Begin PBXFileReference section */
 		027E89144C059DF236D4C542 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		26DD2DEE1ADFBBD057FC6C70 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
-		374D045C272AFF39B0333487 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5637569EAA20CEC4F940E6F7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		626CA6AF0AEB4A25F703A858 /* FloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanel.swift; sourceTree = "<group>"; };
-		7843E5CECF128CA41986391A /* ClipAI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipAI.entitlements; sourceTree = "<group>"; };
 		807063B24EC48792AD22FD63 /* ClipAIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipAIApp.swift; sourceTree = "<group>"; };
 		962DF8D5021FDAE13E379900 /* ClipAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2EF7CADDD8B340BC3E76D39 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -36,11 +34,9 @@
 				5637569EAA20CEC4F940E6F7 /* AppDelegate.swift */,
 				E2EF7CADDD8B340BC3E76D39 /* Assets.xcassets */,
 				26DD2DEE1ADFBBD057FC6C70 /* ClaudeService.swift */,
-				7843E5CECF128CA41986391A /* ClipAI.entitlements */,
 				807063B24EC48792AD22FD63 /* ClipAIApp.swift */,
 				EB6096857481CBA92C88D269 /* ContentView.swift */,
 				626CA6AF0AEB4A25F703A858 /* FloatingPanel.swift */,
-				374D045C272AFF39B0333487 /* Info.plist */,
 				027E89144C059DF236D4C542 /* SettingsView.swift */,
 			);
 			path = ClipAI;
@@ -148,7 +144,6 @@
 				CODE_SIGN_ENTITLEMENTS = ClipAI/ClipAI.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClipAI/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -288,7 +283,6 @@
 				CODE_SIGN_ENTITLEMENTS = ClipAI/ClipAI.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClipAI/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
