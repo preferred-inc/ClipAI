@@ -1,0 +1,72 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build
+        run: |
+          xcodebuild -project ClipAI.xcodeproj \
+            -scheme ClipAI \
+            -configuration Release \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-14
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build Release
+        run: |
+          xcodebuild -project ClipAI.xcodeproj \
+            -scheme ClipAI \
+            -configuration Release \
+            -derivedDataPath build/derived \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Create DMG
+        run: |
+          APP_PATH="build/derived/Build/Products/Release/ClipAI.app"
+          DMG_TEMP="build/ClipAI-temp.dmg"
+          DMG_FINAL="build/ClipAI-${GITHUB_REF_NAME}.dmg"
+
+          hdiutil create -size 100m -fs HFS+ -volname "ClipAI" "$DMG_TEMP"
+          hdiutil attach "$DMG_TEMP" -mountpoint /Volumes/ClipAI
+          cp -R "$APP_PATH" /Volumes/ClipAI/
+          ln -s /Applications /Volumes/ClipAI/Applications
+          hdiutil detach /Volumes/ClipAI
+          hdiutil convert "$DMG_TEMP" -format UDZO -o "$DMG_FINAL"
+          rm "$DMG_TEMP"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/ClipAI-*.dmg
+          generate_release_notes: true
