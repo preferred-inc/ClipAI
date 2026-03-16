@@ -8,6 +8,11 @@ class ClaudeService: ObservableObject {
 
     private var currentTask: Task<Void, Never>?
 
+    func cancel() {
+        currentTask?.cancel()
+        isLoading = false
+    }
+
     func send(prompt: String, apiKey: String) {
         currentTask?.cancel()
         response = ""

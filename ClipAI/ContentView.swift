@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var claude = ClaudeService()
     @State private var prompt: String
     @State private var appeared = false
+    @State private var debugStatus: String = ""
     @FocusState private var isFocused: Bool
 
     init(clipboardText: String, onClose: @escaping () -> Void) {
@@ -16,7 +17,7 @@ struct ContentView: View {
     }
 
     private var hasResponse: Bool {
-        !claude.response.isEmpty || claude.errorMessage != nil
+        !claude.response.isEmpty || claude.errorMessage != nil || claude.isLoading
     }
 
     var body: some View {
@@ -45,11 +46,13 @@ struct ContentView: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 appeared = true
             }
-            isFocused = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isFocused = true
+            }
         }
     }
 
-    // MARK: - Accent bar (brand identity)
+    // MARK: - Accent bar
 
     private var accentBar: some View {
         Theme.gradient
@@ -63,30 +66,24 @@ struct ContentView: View {
         HStack(spacing: 10) {
             SparkleIcon(isAnimating: claude.isLoading)
 
-            VStack(alignment: .leading, spacing: 3) {
-                TextField("聞きたいことを入力…", text: $prompt)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 15, weight: .regular))
-                    .focused($isFocused)
-                    .onSubmit { send() }
-
-            }
+            TextField("聞きたいことを入力してEnter…", text: $prompt)
+                .textFieldStyle(.plain)
+                .font(.system(size: 15, weight: .regular))
+                .focused($isFocused)
+                .onSubmit { send() }
 
             Spacer(minLength: 0)
 
-            if !prompt.isEmpty && !claude.isLoading {
-                Button(action: send) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Theme.accent)
-                }
-                .buttonStyle(.plain)
-                .transition(.scale.combined(with: .opacity))
+            Button(action: send) {
+                Image(systemName: claude.isLoading ? "stop.circle.fill" : "arrow.up.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(prompt.isEmpty ? Theme.accentDim : Theme.accent)
             }
+            .buttonStyle(.plain)
+            .disabled(prompt.isEmpty && !claude.isLoading)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
-        .animation(.easeOut(duration: 0.15), value: prompt.isEmpty)
     }
 
     // MARK: - Divider
@@ -107,6 +104,15 @@ struct ContentView: View {
                         Label(error, systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.red)
                             .font(.system(size: 13))
+                    } else if claude.response.isEmpty && claude.isLoading {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .scaleEffect(0.6)
+                            Text("Thinking…")
+                                .foregroundStyle(.secondary)
+                                .font(.system(size: 13))
+                        }
+                        .padding(.top, 20)
                     } else {
                         MarkdownText(claude.response)
                     }
@@ -127,17 +133,18 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack(spacing: 6) {
-            if claude.isLoading {
+            if claude.isLoading && !claude.response.isEmpty {
                 TypingDots()
             }
             Spacer()
-            Button(action: copyResponse) {
-                Image(systemName: "doc.on.doc")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+            if !claude.response.isEmpty {
+                Button(action: copyResponse) {
+                    Label("Copy", systemImage: "doc.on.doc")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-            .help("Copy response  ⌘C")
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
@@ -147,6 +154,11 @@ struct ContentView: View {
     // MARK: - Actions
 
     private func send() {
+        if claude.isLoading {
+            claude.cancel()
+            return
+        }
+
         let apiKey = UserDefaults.standard.string(forKey: "claude_api_key") ?? ""
         guard !apiKey.isEmpty else {
             claude.errorMessage = "API Key未設定 → メニューバー ✦ → Settings"

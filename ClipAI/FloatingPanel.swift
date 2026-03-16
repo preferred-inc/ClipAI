@@ -7,7 +7,7 @@ final class FloatingPanel: NSPanel {
     init(contentView: NSView) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 540, height: 52),
-            styleMask: [.nonactivatingPanel, .fullSizeContentView],
+            styleMask: [.titled, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -56,20 +56,11 @@ final class FloatingPanel: NSPanel {
 
     override func keyDown(with event: NSEvent) {
         if event.keyCode == 53 {
-            dismiss()
+            dismissWithAnimation { [weak self] in
+                self?.onClose?()
+            }
         } else {
             super.keyDown(with: event)
-        }
-    }
-
-    override func resignKey() {
-        super.resignKey()
-        dismiss()
-    }
-
-    private func dismiss() {
-        dismissWithAnimation { [weak self] in
-            self?.onClose?()
         }
     }
 
