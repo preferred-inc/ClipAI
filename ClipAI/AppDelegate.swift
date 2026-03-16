@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: FloatingPanel?
     private var settingsWindow: NSWindow?
+    private var historyWindow: NSWindow?
     private var hotKeyRef: EventHotKeyRef?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -27,6 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let menu = NSMenu()
         menu.addItem(withTitle: "Show  ⌘⌥.", action: #selector(togglePanel), keyEquivalent: "")
+        menu.addItem(withTitle: "History", action: #selector(openHistory), keyEquivalent: "h")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         menu.addItem(.separator())
@@ -97,6 +99,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         newPanel.showWithAnimation()
         NSApp.activate(ignoringOtherApps: true)
         self.panel = newPanel
+    }
+
+    @objc private func openHistory() {
+        if let w = historyWindow, w.isVisible {
+            w.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 700, height: 450),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "ClipAI History"
+        window.contentView = NSHostingView(rootView: HistoryView())
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        historyWindow = window
     }
 
     @objc private func openSettings() {

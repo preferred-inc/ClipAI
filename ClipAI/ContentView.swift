@@ -7,7 +7,7 @@ struct ContentView: View {
     @StateObject private var claude = ClaudeService()
     @State private var prompt: String
     @State private var appeared = false
-    @State private var debugStatus: String = ""
+    @State private var savedToHistory = false
     @FocusState private var isFocused: Bool
 
     init(clipboardText: String, onClose: @escaping () -> Void) {
@@ -30,6 +30,8 @@ struct ContentView: View {
                 bottomBar
             }
         }
+        .frame(width: 540)
+        .fixedSize(horizontal: false, vertical: true)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
@@ -125,6 +127,12 @@ struct ContentView: View {
             .frame(maxHeight: 360)
             .onChange(of: claude.response) { _ in
                 proxy.scrollTo("bottom", anchor: .bottom)
+            }
+            .onChange(of: claude.isLoading) { loading in
+                if !loading && !claude.response.isEmpty && !savedToHistory {
+                    HistoryStore.shared.add(prompt: prompt, response: claude.response)
+                    savedToHistory = true
+                }
             }
         }
     }
