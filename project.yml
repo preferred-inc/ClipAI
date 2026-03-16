@@ -1,0 +1,28 @@
+name: ClipAI
+options:
+  bundleIdPrefix: com.clipai
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "16.0"
+
+targets:
+  ClipAI:
+    type: application
+    platform: macOS
+    sources:
+      - ClipAI
+    info:
+      path: ClipAI/Info.plist
+    entitlements:
+      path: ClipAI/ClipAI.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clipai.app
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        INFOPLIST_FILE: ClipAI/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ClipAI/ClipAI.entitlements
+        GENERATE_INFOPLIST_FILE: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
