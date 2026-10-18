@@ -1,6 +1,6 @@
 # ClipAI
 
-**⌘⌥I** でクリップボードの内容をAIに即座に聞けるmacOSアプリ。
+**⌘⌥.** でクリップボードの内容をAIに即座に聞けるmacOSアプリ。
 
 Spotlight のように一瞬で現れて、一瞬で消える。それだけ。
 
@@ -17,7 +17,7 @@ Spotlight のように一瞬で現れて、一瞬で消える。それだけ。
 ## Usage
 
 1. テキストをコピー
-2. **⌘⌥I**
+2. **⌘⌥.**
 3. 回答がストリーミング表示される
 
 プロンプト欄に質問を入力すれば、クリップボードの内容をコンテキストとして使える。
@@ -32,6 +32,8 @@ Spotlight のように一瞬で現れて、一瞬で消える。それだけ。
 - メニューバー常駐（Dockに出ない）
 - ネイティブ Swift/SwiftUI（軽量・高速）
 - バックグラウンドでのクリップボード監視なし
+- システムプロンプトの設定（翻訳・コード解説・要約のプリセットあり）
+- 履歴の保存・全文検索・Markdown / JSON 書き出し・保存期間の設定
 
 ## Requirements
 
@@ -47,6 +49,13 @@ xcodegen generate
 xcodebuild -scheme ClipAI -configuration Release build
 ```
 
+## Test
+
+```bash
+xcodegen generate
+xcodebuild -project ClipAI.xcodeproj -scheme ClipAITests -destination 'platform=macOS' test CODE_SIGNING_ALLOWED=NO
+```
+
 ## Release Build (署名 + DMG)
 
 ```bash
@@ -56,7 +65,7 @@ xcodebuild -scheme ClipAI -configuration Release build
 
 ## Privacy
 
-- クリップボードは **⌘⌥I を押したときだけ** 読み取る
+- クリップボードは **⌘⌥. を押したときだけ** 読み取る
 - データはAnthropicのAPIにのみ送信される
 - アナリティクス・テレメトリなし
 

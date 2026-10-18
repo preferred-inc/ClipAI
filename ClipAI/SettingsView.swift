@@ -3,6 +3,9 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage("claude_api_key") private var apiKey: String = ""
     @AppStorage("claude_model") private var model: String = "claude-sonnet-4-20250514"
+    @AppStorage(SystemPromptSettings.enabledKey) private var systemPromptEnabled = false
+    @AppStorage(SystemPromptSettings.textKey) private var systemPrompt = ""
+    @AppStorage(HistorySettings.retentionDaysKey) private var retentionDays = 0
     @State private var showKey = false
 
     private let models: [(id: String, label: String)] = [
@@ -40,6 +43,38 @@ struct SettingsView: View {
             }
 
             Section {
+                Toggle("システムプロンプトを使う", isOn: $systemPromptEnabled)
+                TextEditor(text: $systemPrompt)
+                    .font(.system(size: 12))
+                    .frame(height: 70)
+                    .disabled(!systemPromptEnabled)
+                    .opacity(systemPromptEnabled ? 1 : 0.5)
+                HStack {
+                    Text("プリセット")
+                        .foregroundStyle(.secondary)
+                    ForEach(SystemPromptSettings.presets) { preset in
+                        Button(preset.label) {
+                            systemPrompt = preset.text
+                            systemPromptEnabled = true
+                        }
+                    }
+                }
+            } header: {
+                Text("System Prompt")
+            }
+
+            Section("History") {
+                Picker("保存期間", selection: $retentionDays) {
+                    ForEach(HistorySettings.retentionOptions, id: \.days) { option in
+                        Text(option.label).tag(option.days)
+                    }
+                }
+                .onChange(of: retentionDays) { _ in
+                    HistoryStore.shared.applyRetention()
+                }
+            }
+
+            Section {
                 HStack {
                     Text("Global Shortcut")
                     Spacer()
@@ -59,7 +94,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 320)
+        .frame(width: 440, height: 560)
     }
 }
 

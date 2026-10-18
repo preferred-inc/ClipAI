@@ -1,12 +1,18 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct HistoryView: View {
     @ObservedObject var store = HistoryStore.shared
     @State private var selected: HistoryItem?
+    @State private var query = ""
+
+    private var filteredItems: [HistoryItem] {
+        HistoryStore.filter(store.items, query: query)
+    }
 
     var body: some View {
         NavigationSplitView {
-            List(store.items, selection: Binding(
+            List(filteredItems, selection: Binding(
                 get: { selected?.id },
                 set: { id in selected = store.items.first { $0.id == id } }
             )) { item in
@@ -22,7 +28,18 @@ struct HistoryView: View {
                 .tag(item.id)
             }
             .frame(minWidth: 220)
+            .searchable(text: $query, placement: .sidebar, prompt: "履歴を検索")
             .toolbar {
+                ToolbarItem {
+                    Menu {
+                        Button("Markdown で書き出す…") { export(as: .markdown) }
+                        Button("JSON で書き出す…") { export(as: .json) }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(filteredItems.isEmpty)
+                    .help("Export")
+                }
                 ToolbarItem {
                     Button(action: { store.clear() }) {
                         Image(systemName: "trash")
@@ -76,6 +93,39 @@ struct HistoryView: View {
             }
         }
         .frame(minWidth: 600, minHeight: 400)
+    }
+
+    private enum ExportFormat {
+        case markdown, json
+    }
+
+    /// 表示中（検索で絞り込んだ後）の履歴をファイルに書き出す。
+    private func export(as format: ExportFormat) {
+        let items = filteredItems
+        let panel = NSSavePanel()
+        switch format {
+        case .markdown:
+            panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
+            panel.nameFieldStringValue = "ClipAI-history.md"
+        case .json:
+            panel.allowedContentTypes = [.json]
+            panel.nameFieldStringValue = "ClipAI-history.json"
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let data: Data?
+        switch format {
+        case .markdown:
+            data = HistoryStore.exportMarkdown(items).data(using: .utf8)
+        case .json:
+            data = try? HistoryStore.exportJSON(items)
+        }
+        guard let data else { return }
+        do {
+            try data.write(to: url, options: .atomic)
+        } catch {
+            NSAlert(error: error).runModal()
+        }
     }
 
     private func copyResponse(_ text: String) {
