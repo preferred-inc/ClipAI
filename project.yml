@@ -34,3 +34,32 @@ targets:
         SWIFT_VERSION: "5.9"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+  ClipAITests:
+    type: bundle.unit-test
+    platform: macOS
+    # ホストアプリを起動しない（グローバルホットキー登録やメニューバー常駐を避ける）ため、
+    # 純粋なロジックのソースだけを直接含める。
+    sources:
+      - path: ClipAITests
+      - path: ClipAI/HistoryStore.swift
+      - path: ClipAI/ClaudeRequest.swift
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.9"
+        # XCTest は macOS 14 向けにビルドされているため、テストバンドルだけ 14.0 にする
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+
+schemes:
+  ClipAI:
+    build:
+      targets:
+        ClipAI: all
+  ClipAITests:
+    build:
+      targets:
+        ClipAITests: [test]
+    test:
+      targets:
+        - ClipAITests

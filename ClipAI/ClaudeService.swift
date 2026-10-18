@@ -32,7 +32,7 @@ class ClaudeService: ObservableObject {
     }
 
     private func streamRequest(prompt: String, apiKey: String) async throws {
-        let model = UserDefaults.standard.string(forKey: "claude_model") ?? "claude-sonnet-4-20250514"
+        let model = UserDefaults.standard.string(forKey: "claude_model") ?? ClaudeRequest.defaultModel
 
         let url = URL(string: "https://api.anthropic.com/v1/messages")!
         var request = URLRequest(url: url)
@@ -41,14 +41,11 @@ class ClaudeService: ObservableObject {
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
 
-        let body: [String: Any] = [
-            "model": model,
-            "max_tokens": 4096,
-            "stream": true,
-            "messages": [
-                ["role": "user", "content": prompt]
-            ]
-        ]
+        let body = ClaudeRequest.body(
+            prompt: prompt,
+            model: model,
+            systemPrompt: ClaudeRequest.systemPrompt()
+        )
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
